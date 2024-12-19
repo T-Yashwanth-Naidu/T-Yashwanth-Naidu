@@ -1,6 +1,6 @@
 # Hi there, I'm Yashwanth Naidu Tikkisetty! 👋
 
-** I Like debugging **
+**I Like debugging**
 
 🔧 **Embedded Software Engineer | Embedded Systems Enthusiast **  
 🎓 **Master's Degree in Embedded Systems | Oakland University **  
