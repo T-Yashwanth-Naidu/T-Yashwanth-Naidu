@@ -1,11 +1,9 @@
 # Hi there, I'm Yashwanth Naidu Tikkisetty! 👋
 
-**I Like debugging**
+Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 years of experience in embedded software development, real-time systems, and software testing. I enjoy debugging code.  
 
 🔧 **Embedded Software Engineer | Embedded Systems Enthusiast **  
 🎓 **Master's Degree in Embedded Systems | Oakland University **  
-
-Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 years of experience in embedded software development, real-time systems, and software testing. I enjoy building solutions that are efficient, scalable, and innovative.  
 
 ---
 
