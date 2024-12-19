@@ -12,8 +12,7 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 ## 🛠️ Technical Skills
 
 - **Programming Languages:**  
-  ![C](https://img.shields.io/badge/-C-blue) ![Assembly](https://img.shields.io/badge/-Assembly-green) ![Python](https://img.shields.io/badge/-Python-yellow)  
-  ![CUDA](https://img.shields.io/badge/-CUDA-blue)  
+  ![C](https://img.shields.io/badge/-C-blue) ![Assembly](https://img.shields.io/badge/-Assembly-green) ![Python](https://img.shields.io/badge/-Python-yellow) ![CUDA](https://img.shields.io/badge/-CUDA-blue)  
 
 - **Microcontrollers and Boards:**  
   Arduino Uno/Nano, ESP32, TI TIVA-C, Infineon Aurix TC375, 8051 (AT89S52), HCS12  
@@ -31,25 +30,25 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 
 ## 📂 Featured Projects
 
-### 🔹 **[Enhancing K-Nearest Neighbors (KNN) with GPU Parallelism](https://github.com/YourRepo/KNN-Parallelism)**
+### 🔹 **Enhancing K-Nearest Neighbors (KNN) with GPU Parallelism**
 - Developed a CUDA-based parallel algorithm for KNN, achieving 1000x speedup.  
 - **Technologies:** C, CUDA, NVIDIA GPU, Benchmarking  
 
 ---
 
-### 🔹 **[Automated Emergency Braking System](https://github.com/YourRepo/AEB-SensorFusion)**
+### 🔹 **Automated Emergency Braking System**
 - Designed and validated an AEB system using radar, LiDAR, and camera sensor fusion.  
 - **Technologies:** MATLAB, Simulink, Sensor Fusion, Model-Based Programming  
 
 ---
 
-### 🔹 **[Multi-Level Security Access System](https://github.com/YourRepo/Security-Access-System)**
+### 🔹 **Multi-Level Security Access System**
 - Created a security system using the 8051 microcontroller with GSM, UART, and I2C.  
 - **Technologies:** C, Embedded Systems, Keil uVision  
 
 ---
 
-### 🔹 **[Secure Biometric Authentication System](https://github.com/YourRepo/Secure-Biometric-Auth)**
+### 🔹 **Secure Biometric Authentication System**
 - Built AES-encrypted biometric authentication with Arduino microcontrollers, testing MITM and DoS vulnerabilities.  
 - **Technologies:** AES, UART, Cybersecurity  
 
@@ -57,12 +56,14 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 
 ## 🌟 Achievements
 
-- **Published Articles:**  
-  - *CAN Bus Attack Vectors* – IEEE Wavelength, Apr 2024  
-  - *Finding Earth-Like Planets* – Indian Aerospace Defense News, Jun 2023  
+### Published Articles  
+- **CAN Bus Attack Vectors** – IEEE Wavelength, Apr 2024  
+- **Finding Earth-Like Planets and the Possibility of Life Beyond Earth** – Indian Aerospace Defense News, Jun 2023  
 
-- **Thesis:**  
-  *Semi-Automated Workflow Design for Data Acquisition and 3D Model Reconstruction Using Photogrammetry for VR Applications*  
+### Conference Papers  
+- **Semi-Automated Workflow for 3D Model Reconstruction** – Master’s Thesis, Dec 2024  
+- **Automated Data Acquisition for Photogrammetry** – IEEE ICRA (International Conference on Robotics and Automation)  
+- **LiDAR 3D Point Cloud Performance Analysis** – IEEE ICMI (International Conference on Multimodal Interaction), Apr 2024  
 
 ---
 
