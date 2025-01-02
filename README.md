@@ -72,7 +72,7 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 ---
 
 ## 🌐 Connect with Me
-[![LinkedIn](https://img.shields.io/badge/-LinkedIn-blue?style=flat&logo=LinkedIn)](https://linkedin.com/in/t-yashwanth-naidu-887633156)  
+[![LinkedIn](https://img.shields.io/badge/-LinkedIn-blue?style=flat&logo=LinkedIn)](https://www.linkedin.com/in/t-yashwanth-naidu/)  
 [![GitHub](https://img.shields.io/badge/-GitHub-black?style=flat&logo=GitHub)](https://github.com/T-Yashwanth-Naidu)  
 
 ✨ *“ Life is a bit. You are either 0 or a 1. I like to toggle every now and then. ”* ✨
