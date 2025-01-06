@@ -66,7 +66,7 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 ---
 
 ## 📊 My Stats
-![Yashwanth's GitHub Stats](https://github-readme-stats.vercel.app/api?username=T-Yashwanth-Naidu&show_icons=true&theme=algolia,include_all_commits=true)  
+![Yashwanth's GitHub Stats](https://github-readme-stats.vercel.app/api?username=T-Yashwanth-Naidu&show_icons=true&theme=algolia&include_all_commits=true)  
 ![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=T-Yashwanth-Naidu&layout=compact&theme=radical)  
 
 ---
