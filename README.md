@@ -30,7 +30,7 @@ Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 ye
 
 ### 🔹 **Enhancing K-Nearest Neighbors (KNN) with GPU Parallelism**
 - Developed a CUDA-based parallel algorithm for KNN, achieving 1000x speedup.  
-- **Technologies:** C, CUDA, NVIDIA GPU, Benchmarking  
+-  **Technologies:** C, CUDA, NVIDIA GPU, Benchmarking  
 
 ---
 
