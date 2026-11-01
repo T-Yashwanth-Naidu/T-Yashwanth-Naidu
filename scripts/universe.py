@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 """
-Build the whole profile README as one universe.
+Build the profile README as one space-themed page.
 
-  assets/cosmos.svg            hero: repos orbiting a black hole (links to website)
-  assets/banner-NN.svg         animated section banners
-  assets/star-chart.svg        skills as constellations
-  assets/planets/<repo>.svg    one card per public repo -> links to that repo
-  assets/uncharted/<id>.svg    projects without a public repo -> link to website
-  assets/telemetry.svg         repos / stars / contributions / language spectrum
-  assets/channel-*.svg         contact buttons
-  assets/footer.svg            quote with a toggling bit
-  README.md                    rendered from scripts/README.template.md
+  assets/cosmos.svg              hero: featured repos orbiting a black hole -> portfolio
+  assets/banner-NN.svg           section headers
+  assets/toolkit.svg             skills
+  assets/planets/<repo>.svg      featured repos -> each links to its repo
+  assets/uncharted/<id>.svg      projects without a public repo -> portfolio
+  assets/telemetry.svg           live GitHub stats
+  assets/channel-*.svg           contact buttons
+  assets/footer.svg              quote
+  README.md                      rendered from scripts/README.template.md
 
-GitHub serves each SVG as a plain image, so links can't live inside an SVG.
-Every clickable thing is therefore its own image wrapped in <a>.
+GitHub serves each SVG as a plain image, so links can't live inside one.
+Every clickable thing is its own image wrapped in <a>.
 
-Stdlib only. Usage:
-  GITHUB_TOKEN=... python scripts/universe.py --user T-Yashwanth-Naidu
+Stdlib only.  GITHUB_TOKEN=... python scripts/universe.py --user T-Yashwanth-Naidu
 """
 import argparse
 import math
@@ -27,44 +26,79 @@ from xml.sax.saxutils import escape
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import generate_cosmos as gc  # noqa: E402
-from generate_cosmos import FONT, h01, mix, LANG_COLORS, DEFAULT_COLOR  # noqa: E402
+from generate_cosmos import h01, mix  # noqa: E402
 
+SANS = gc.FONT
+MONO = gc.MONO
+
+PORTFOLIO = "https://cthecosmos.com/?page_id=4955"
 SITE = "https://cthecosmos.com"
 LINKEDIN = "https://www.linkedin.com/in/t-yashwanth-naidu/"
 
-# ----------------------------------------------------------------- content
-# Edit these, not the SVG code.
+# ----------------------------------------------------------------- palette
+# GitHub dark greys + one warm starlight accent. Nothing neon.
+BG0, BG1 = "#04060a", "#0b0f17"
+BORDER = "#30363d"
+TEXT, MUTED, FAINT = "#e6edf3", "#8b949e", "#6e7681"
+ACCENT = "#d9a85b"
 
-STAR_CHART = [
-    ("LANGUAGES",  "#8fb3e8", ["C", "C++", "Python", "CUDA", "Assembly"]),
-    ("AUTOMOTIVE", "#ffb05a", ["UDS", "DoIP", "SOVD", "AUTOSAR", "CAN-FD"]),
-    ("SYSTEMS",    "#9ae6b4", ["Linux", "QNX", "ROS2", "GDB", "OpenACC"]),
-    ("SILICON",    "#e7b8ff", ["Orin AGX", "Aurix TC375", "TIVA-C", "ESP32", "8051"]),
-    ("SAFETY",     "#ff8fa3", ["ISO 26262", "MISRA C", "EN 50128", "VectorCAST", "Simulink"]),
+# GitHub's own language colors (only used for the small language dot).
+LANG = {"C": "#555555", "C++": "#f34b7d", "Python": "#3572A5", "JavaScript": "#f1e05a",
+        "TypeScript": "#3178c6", "Cuda": "#3A4E3A", "Assembly": "#6E4C13", "MATLAB": "#e16737",
+        "Shell": "#89e051", "HTML": "#e34c26", "CMake": "#DA3434", "Makefile": "#427819"}
+
+# Real-planet tones: (base, band tones)
+PLANETS = {
+    "saturn":  ("#d6bf8e", ["#bfa06d", "#ecdcb5", "#c9ad7c"]),
+    "jupiter": ("#c8a47a", ["#a9784e", "#e3cfae", "#8c5a3c"]),
+    "mars":    ("#b25a3c", ["#8e4128", "#c87a55", "#9c4a30"]),
+    "neptune": ("#4f6fae", ["#3d5a96", "#7c9bd1", "#46659f"]),
+    "mercury": ("#8e8a85", ["#75716c", "#a8a49f", "#807c77"]),
+    "venus":   ("#d8c59c", ["#c8b282", "#e9dcbd", "#cdb98e"]),
+    "uranus":  ("#9ccfd2", ["#86bcc0", "#b6e0e2", "#8fc5c8"]),
+    "earth":   ("#3f6e9e", ["#5b8a4a", "#e8edf0", "#2f5a86"]),
+}
+
+# ----------------------------------------------------------------- content (edit here)
+
+PRIMARY = "C-Programming-Questions"
+FEATURED = [  # order shown under the primary card; (repo name, planet)
+    ("understanding_memory_in_c", "jupiter"),
+    ("C-Programs", "mars"),
+    ("Socket_Manager", "neptune"),
+    ("LinkedIn-Highlighter", "mercury"),
+]
+DESCRIPTIONS = {  # override empty or weak repo descriptions here
+}
+
+TOOLKIT = [
+    ("Languages", ["C", "C++", "Python", "CUDA", "Assembly"]),
+    ("Automotive", ["UDS", "DoIP", "SOVD", "AUTOSAR", "CAN / CAN-FD"]),
+    ("Systems", ["Linux kernel", "QNX", "ROS2", "GDB", "OpenACC"]),
+    ("Hardware", ["Nvidia Orin AGX", "Aurix TC375", "TIVA-C", "ESP32", "8051"]),
+    ("Safety & test", ["ISO 26262", "MISRA C", "EN 50128", "VectorCAST", "Simulink"]),
 ]
 
-UNCHARTED = [  # projects without a public repo -> website
-    dict(id="gpu-knn", name="GPU KNN", language="Cuda",
+UNCHARTED = [
+    dict(id="gpu-knn", name="GPU KNN", language="Cuda", planet="uranus",
          description="CUDA-parallel K-nearest neighbors, benchmarked against a CPU baseline"),
-    dict(id="aeb", name="AEB System", language="MATLAB",
+    dict(id="aeb", name="AEB System", language="MATLAB", planet="mars",
          description="Emergency braking from radar, LiDAR and camera sensor fusion"),
-    dict(id="mlsa", name="Multi-Level Access", language="C",
+    dict(id="mlsa", name="Multi-Level Access", language="C", planet="mercury",
          description="8051 security access system with GSM, UART and I2C"),
-    dict(id="biometric", name="Secure Biometric", language="C",
+    dict(id="biometric", name="Secure Biometric", language="C", planet="venus",
          description="AES-encrypted biometric auth on Arduino, tested against MITM and DoS"),
 ]
 
-BANNERS = [  # (number, title, subtitle, accent)
-    ("01", "MISSION LOG", "who is flying this ship", "#ffb05a"),
-    ("02", "STAR CHART", "the stack, as constellations", "#8fb3e8"),
-    ("03", "PLANETS", "public repos - click to land", "#9ae6b4"),
-    ("04", "UNCHARTED WORLDS", "built, not public - logs on cthecosmos", "#e7b8ff"),
-    ("05", "TRANSMISSIONS", "papers and articles", "#ff8fa3"),
-    ("06", "TELEMETRY", "live from the GitHub API", "#7fd3ff"),
-    ("07", "OPEN CHANNEL", "say hi", "#ffd56b"),
+BANNERS = [  # (number, title, note)
+    ("01", "About", ""),
+    ("02", "Toolkit", ""),
+    ("03", "Repositories", "click a card to open the repo"),
+    ("04", "Projects", "no public repo - details on my portfolio"),
+    ("05", "Publications", ""),
+    ("06", "GitHub stats", "updated daily"),
+    ("07", "Contact", ""),
 ]
-
-LANG_COLORS = dict(LANG_COLORS, MATLAB="#e16737", Java="#b07219", Go="#00add8")
 
 
 # ----------------------------------------------------------------- helpers
@@ -74,31 +108,35 @@ def svg_open(w, h, title):
             f'role="img"><title>{escape(title)}</title>')
 
 
-def dust(w, h, n, salt, y0=0, y1=None, twinkle=0):
-    y1 = h if y1 is None else y1
+STAR_TONES = ["#ffffff", "#cad7ff", "#ffe9c4", "#ffffff", "#dfe6ff"]
+
+
+def stars(w, h, n, salt, twinkle=0):
     out = []
     for i in range(n):
         k = f"{salt}{i}"
-        x, y = h01(k, "x") * w, y0 + h01(k, "y") * (y1 - y0)
-        r = .4 + h01(k, "r") * .9
-        op = .25 + h01(k, "o") * .5
+        x, y = h01(k, "x") * w, h01(k, "y") * h
+        r = .35 + h01(k, "r") ** 3 * 1.1
+        c = STAR_TONES[i % len(STAR_TONES)]
+        op = .2 + h01(k, "o") * .55
         if i < twinkle:
-            d = 2 + h01(k, "d") * 4
-            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r + .4:.2f}" fill="#fff3d4">'
-                       f'<animate attributeName="opacity" values=".15;1;.15" dur="{d:.1f}s" '
-                       f'begin="-{h01(k, "b") * d:.1f}s" repeatCount="indefinite"/></circle>')
+            d = 3 + h01(k, "d") * 5
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r + .3:.2f}" fill="{c}">'
+                       f'<animate attributeName="opacity" values="{op * .3:.2f};{op + .25:.2f};{op * .3:.2f}" '
+                       f'dur="{d:.1f}s" begin="-{h01(k, "b") * d:.1f}s" repeatCount="indefinite"/></circle>')
         else:
-            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.2f}" fill="#cfd8ff" opacity="{op:.2f}"/>')
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.2f}" fill="{c}" opacity="{op:.2f}"/>')
     return "".join(out)
 
 
-def panel(w, h, rx=14, accent="#3a4380"):
-    return (f'<defs><linearGradient id="pbg" x1="0" y1="0" x2="1" y2="1">'
-            f'<stop offset="0" stop-color="#05060f"/><stop offset="1" stop-color="#0e1438"/></linearGradient>'
+def panel(w, h, rx=10, border=BORDER, dashed=False):
+    dash = ' stroke-dasharray="4 4"' if dashed else ""
+    head = (f'<defs><linearGradient id="pbg" x1="0" y1="0" x2="0" y2="1">'
+            f'<stop offset="0" stop-color="{BG0}"/><stop offset="1" stop-color="{BG1}"/></linearGradient>'
             f'<clipPath id="pclip"><rect width="{w}" height="{h}" rx="{rx}"/></clipPath></defs>'
-            f'<rect width="{w}" height="{h}" rx="{rx}" fill="url(#pbg)"/>'), \
-           (f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="{rx}" fill="none" '
-            f'stroke="{accent}" stroke-opacity=".55"/>')
+            f'<rect width="{w}" height="{h}" rx="{rx}" fill="url(#pbg)"/>')
+    tail = f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="{rx}" fill="none" stroke="{border}"{dash}/>'
+    return head, tail
 
 
 def wrap(text, width, max_lines):
@@ -114,7 +152,7 @@ def wrap(text, width, max_lines):
     if cur and len(lines) < max_lines:
         lines.append(cur)
     if len(lines) == max_lines and len(" ".join(lines)) < len(text or ""):
-        lines[-1] = lines[-1][: width - 2].rstrip() + ".."
+        lines[-1] = lines[-1][: width - 3].rstrip() + "..."
     return lines
 
 
@@ -128,217 +166,184 @@ def write(path, content):
         f.write(content)
 
 
-# ----------------------------------------------------------------- planet card
+# ----------------------------------------------------------------- planet body
 
-CW, CH = 400, 210
-
-
-def planet_card(name, description, language, stars, tag, seed, dashed=False):
-    color = LANG_COLORS.get(language or "", DEFAULT_COLOR)
-    px, py = 96, 108
-    pr = 30 + min(16, 5 * math.log10(stars + 1)) if stars is not None else 32
-    bg, border = panel(CW, CH, accent=color)
-    if dashed:
-        border = border.replace('stroke-opacity=".55"', 'stroke-opacity=".6" stroke-dasharray="5 5"')
-
+def planet_body(planet, pr, seed, ring=False):
+    base, tones = PLANETS[planet]
     bands = []
-    for i in range(5):
+    for i in range(7):
         k = f"{seed}b{i}"
-        y = (h01(k, "y") - .5) * 1.6 * pr
-        hgt = 3 + h01(k, "h") * 8
-        tone = mix(color, "#ffffff" if i % 2 else "#000000", .25 + .2 * h01(k, "t"))
-        bands.append(f'<ellipse cx="0" cy="{y:.1f}" rx="{pr * 1.6:.1f}" ry="{hgt:.1f}" '
-                     f'fill="{tone}" opacity=".55"/>')
-    spin = 9 + h01(seed, "spin") * 8
-    surface = (f'<g clip-path="url(#pc)"><circle r="{pr:.1f}" fill="url(#psurf)"/>'
-               f'<g filter="url(#bl)">{"".join(bands)}'
+        y = (h01(k, "y") - .5) * 1.8 * pr
+        hh = 2 + h01(k, "h") * (pr * .16)
+        bands.append(f'<ellipse cx="0" cy="{y:.1f}" rx="{pr * 1.7:.1f}" ry="{hh:.1f}" '
+                     f'fill="{tones[i % len(tones)]}" opacity=".7"/>')
+    spin = 26 + h01(seed, "spin") * 14  # slow, like a real rotation
+    defs = (f'<defs><radialGradient id="ps{seed}" fx=".38" fy=".35">'
+            f'<stop offset="0" stop-color="{mix(base, "#ffffff", .25)}"/>'
+            f'<stop offset="1" stop-color="{mix(base, "#000000", .25)}"/></radialGradient>'
+            # light from the upper left, deep night side
+            f'<radialGradient id="sh{seed}" cx=".32" cy=".3" r=".9"><stop offset=".45" stop-color="#000" stop-opacity="0"/>'
+            '<stop offset=".8" stop-color="#000" stop-opacity=".65"/><stop offset="1" stop-color="#000" stop-opacity=".92"/>'
+            '</radialGradient>'
+            f'<clipPath id="pc{seed}"><circle r="{pr:.1f}"/></clipPath>'
+            f'<filter id="bl{seed}" x="-20%" y="-60%" width="140%" height="220%">'
+            '<feGaussianBlur stdDeviation="1.3"/></filter></defs>')
+    surface = (f'<g clip-path="url(#pc{seed})"><circle r="{pr:.1f}" fill="url(#ps{seed})"/>'
+               f'<g filter="url(#bl{seed})">{"".join(bands)}'
                f'<animateTransform attributeName="transform" type="translate" '
-               f'values="{-pr * .6:.1f},0;{pr * .6:.1f},0;{-pr * .6:.1f},0" dur="{spin:.1f}s" '
+               f'values="{-pr * .5:.1f},0;{pr * .5:.1f},0;{-pr * .5:.1f},0" dur="{spin:.1f}s" '
                'repeatCount="indefinite"/></g>'
-               f'<circle r="{pr:.1f}" fill="url(#pshade)"/></g>')
-    ring = ""
-    if stars and stars >= 10:
-        ring_back = (f'<path d="M{-pr * 1.75:.1f},0 A{pr * 1.75:.1f},{pr * .42:.1f} 0 0,1 {pr * 1.75:.1f},0" '
-                     f'fill="none" stroke="{mix(color, "#ffffff", .45)}" stroke-width="3" opacity=".55" '
-                     'transform="rotate(-16)"/>')
-        ring_front = ring_back.replace("0 0,1", "0 0,0").replace('opacity=".55"', 'opacity=".9"')
-        ring = (ring_back, ring_front)
-    moon_path = f"M{-pr - 18:.1f},0 A{pr + 18:.1f},{(pr + 18) * .28:.1f} 0 1,0 {pr + 18:.1f},0 " \
-                f"A{pr + 18:.1f},{(pr + 18) * .28:.1f} 0 1,0 {-pr - 18:.1f},0"
-    moon = (f'<circle r="3.2" fill="#e8ecff"><animateMotion dur="{6 + h01(seed, "m") * 4:.1f}s" '
-            f'repeatCount="indefinite" path="{moon_path}"/></circle>')
+               f'<circle r="{pr:.1f}" fill="url(#sh{seed})"/></g>'
+               f'<circle r="{pr + 1.2:.1f}" fill="none" stroke="{mix(base, "#ffffff", .5)}" '
+               'stroke-opacity=".18" stroke-width="1.5"/>')
+    if not ring:
+        return defs + surface
+    rx, ry = pr * 1.9, pr * .42
+    arc = (lambda sweep, op, w: f'<path d="M{-rx:.1f},0 A{rx:.1f},{ry:.1f} 0 0,{sweep} {rx:.1f},0" fill="none" '
+           f'stroke="{tones[1]}" stroke-width="{w}" opacity="{op}" transform="rotate(-14)"/>')
+    back = arc(1, .45, pr * .14) + arc(1, .25, pr * .05)
+    front = arc(0, .85, pr * .14) + arc(0, .5, pr * .05)
+    return defs + back + surface + front
 
-    tx = 186
-    lines = wrap(description or "no description yet", 26, 3)
-    desc = "".join(f'<text x="{tx}" y="{92 + i * 17}" font-size="12.5" fill="#a7b2e0">{escape(l)}</text>'
-                   for i, l in enumerate(lines))
-    fs = 19 if len(name) <= 15 else 16 if len(name) <= 19 else 14
-    nm = name if len(name) <= 24 else name[:23] + "."
-    meta = f'<circle cx="{tx + 5}" cy="{CH - 33}" r="5" fill="{color}"/>' \
-           f'<text x="{tx + 16}" y="{CH - 29}" font-size="12" fill="#c9d2ff">{escape(language or "n/a")}</text>'
-    if stars:
-        meta += f'<text x="{CW - 22}" y="{CH - 29}" font-size="12" fill="#ffd56b" text-anchor="end">{stars} *</text>'
-    tagline = f'<text x="{CW - 22}" y="28" font-size="10.5" fill="{color}" text-anchor="end" ' \
-              f'letter-spacing="1.5">{escape(tag)}</text>'
 
+# ----------------------------------------------------------------- cards
+
+def repo_card(name, description, language, stars_n, forks_n, planet, seed, w=400, h=190,
+              primary=False, dashed=False, tag=""):
+    head, tail = panel(w, h, border=ACCENT if primary else BORDER, dashed=dashed)
+    pr = 54 if primary else 34
+    px, py = (120 if primary else 88), h / 2 + 4
+    tx = 250 if primary else 168
+    fs_name = 26 if primary else (19 if len(name) <= 16 else 16 if len(name) <= 20 else 14)
+    nm = name if len(name) <= 26 else name[:25] + "..."
+    desc_lines = wrap(description, 50 if primary else 28, 2 if primary else 3)
+    desc = "".join(f'<text x="{tx}" y="{(96 if primary else 84) + i * (22 if primary else 18)}" '
+                   f'font-size="{15 if primary else 13}" fill="{MUTED}">{escape(l)}</text>'
+                   for i, l in enumerate(desc_lines))
+    my = h - (40 if primary else 30)
+    meta = (f'<circle cx="{tx + 6}" cy="{my - 4}" r="6" fill="{LANG.get(language, "#8b949e")}"/>'
+            f'<text x="{tx + 18}" y="{my}" font-size="13" fill="{MUTED}">{escape(language or "")}</text>')
+    nx = tx + 28 + 8 * len(language or "") + 18
+    if stars_n:
+        meta += f'<text x="{nx}" y="{my}" font-size="13" fill="{MUTED}">{stars_n} {"star" if stars_n == 1 else "stars"}</text>'
+        nx += 8 * len(f"{stars_n} stars") + 18
+    if forks_n:
+        meta += f'<text x="{nx}" y="{my}" font-size="13" fill="{MUTED}">{forks_n} forks</text>'
+    badge = ""
+    if tag:
+        badge = (f'<text x="{w - 22}" y="30" font-size="12" fill="{ACCENT if primary else FAINT}" '
+                 f'text-anchor="end">{escape(tag)}</text>')
     return "".join([
-        svg_open(CW, CH, f"{name}: {description or ''}"),
-        bg,
-        '<defs>'
-        f'<radialGradient id="psurf" fx=".35" fy=".3"><stop offset="0" stop-color="{mix(color, "#ffffff", .5)}"/>'
-        f'<stop offset=".6" stop-color="{color}"/><stop offset="1" stop-color="{mix(color, "#000000", .55)}"/></radialGradient>'
-        '<radialGradient id="pshade" cx=".35" cy=".35" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/>'
-        '<stop offset="1" stop-color="#000" stop-opacity=".7"/></radialGradient>'
-        f'<radialGradient id="patm"><stop offset=".7" stop-color="{color}" stop-opacity=".35"/>'
-        f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient>'
-        f'<clipPath id="pc"><circle r="{pr:.1f}"/></clipPath>'
-        '<filter id="bl" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>'
-        '</defs>',
-        f'<g clip-path="url(#pclip)">{dust(CW, CH, 40, seed, twinkle=8)}',
-        f'<g transform="translate({px},{py})">',
-        f'<circle r="{pr + 14:.1f}" fill="url(#patm)"/>',
-        ring[0] if ring else "", surface, ring[1] if ring else "", moon, '</g>',
-        f'<g font-family="{FONT}">',
-        f'<text x="{tx}" y="60" font-size="{fs}" font-weight="700" fill="#eef1ff">{escape(nm)}</text>',
-        desc, meta, tagline, '</g></g>', border, '</svg>'])
+        svg_open(w, h, f"{name}: {description or ''}"), head,
+        f'<g clip-path="url(#pclip)">{stars(w, h, 55 if primary else 32, seed, twinkle=6)}',
+        f'<g transform="translate({px},{py})">{planet_body(planet, pr, slug(seed), ring=primary)}</g>',
+        f'<g font-family="{SANS}">',
+        f'<text x="{tx}" y="{56 if primary else 52}" font-size="{fs_name}" font-weight="600" fill="{TEXT}">{escape(nm)}</text>',
+        desc, meta, badge, '</g></g>', tail, '</svg>'])
 
 
-# ----------------------------------------------------------------- banners
+# ----------------------------------------------------------------- section header
 
-BW, BH = 830, 64
+BW, BH = 830, 52
 
 
-def banner(num, title, subtitle, accent):
-    bg, border = panel(BW, BH, rx=12, accent=accent)
-    line_y = 40
+def banner(num, title, note):
+    head, tail = panel(BW, BH, rx=8)
     return "".join([
-        svg_open(BW, BH, f"{num} {title}"), bg,
-        f'<g clip-path="url(#pclip)">{dust(BW, BH, 70, "ban" + num, twinkle=14)}',
-        f'<g font-family="{FONT}">'
-        f'<text x="24" y="{line_y}" font-size="13" fill="{accent}" letter-spacing="2">// {num}</text>'
-        f'<text x="{24 + 13 * (len(num) + 4)}" y="{line_y + 1}" font-size="20" font-weight="700" fill="#eef1ff" '
-        f'letter-spacing="3">{escape(title)}</text>'
-        f'<text x="{BW - 24}" y="{line_y}" font-size="12" fill="#8f9ad0" text-anchor="end">{escape(subtitle)}</text></g>',
-        f'<line x1="24" y1="{BH - 10}" x2="{BW - 24}" y2="{BH - 10}" stroke="{accent}" stroke-opacity=".25"/>',
-        f'<circle r="2.6" fill="{accent}"><animateMotion dur="5.5s" repeatCount="indefinite" '
-        f'path="M24,{BH - 10} L{BW - 24},{BH - 10}"/></circle>',
-        f'<circle r="9" fill="{accent}" opacity=".18"><animateMotion dur="5.5s" repeatCount="indefinite" '
-        f'path="M24,{BH - 10} L{BW - 24},{BH - 10}"/></circle>',
-        '</g>', border, '</svg>'])
+        svg_open(BW, BH, title), head,
+        f'<g clip-path="url(#pclip)">{stars(BW, BH, 60, "ban" + num, twinkle=10)}',
+        f'<g font-family="{SANS}">'
+        f'<text x="22" y="33" font-size="13" fill="{FAINT}" font-family="{MONO}">{num}</text>'
+        f'<text x="52" y="34" font-size="20" font-weight="600" fill="{TEXT}">{escape(title)}</text>'
+        f'<text x="{BW - 22}" y="33" font-size="12.5" fill="{FAINT}" text-anchor="end">{escape(note)}</text></g>',
+        '</g>', tail, '</svg>'])
 
 
-# ----------------------------------------------------------------- star chart
+# ----------------------------------------------------------------- toolkit
 
-SW, SH = 830, 340
-
-
-def star_chart(chart):
-    bg, border = panel(SW, SH, accent="#3a4380")
-    centers = [(145, 110), (415, 110), (685, 110), (280, 250), (550, 250)]
+def toolkit(rows):
+    w, row_h, top = 830, 44, 26
+    h = top * 2 + row_h * len(rows) - 8
+    head, tail = panel(w, h)
     out = []
-    for (title, color, skills), (cx, cy) in zip(chart, centers):
-        n = len(skills)
-        span = 186
-        pts = []
-        for i, s in enumerate(skills):
-            x = cx - span / 2 + span * i / max(n - 1, 1)
-            y = cy + (14 if i % 2 else -14) + (h01(s, "jit") - .5) * 14
-            pts.append((x, y, s))
-        poly = " ".join(f"{x:.1f},{y:.1f}" for x, y, _ in pts)
-        out.append(f'<polyline points="{poly}" fill="none" stroke="{color}" stroke-opacity=".45" '
-                   'stroke-width="1.2" stroke-dasharray="1 0">'
-                   '<animate attributeName="stroke-opacity" values=".25;.6;.25" dur="5s" repeatCount="indefinite"/>'
-                   '</polyline>')
-        out.append(f'<text x="{cx}" y="{cy - 50}" font-size="12" fill="{color}" text-anchor="middle" '
-                   f'letter-spacing="2.5">{escape(title)}</text>')
-        for i, (x, y, s) in enumerate(pts):
-            d = 2.4 + h01(s, "tw") * 3
-            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="9" fill="{color}" opacity=".16"/>'
-                       f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.4" fill="#fffaf0">'
-                       f'<animate attributeName="r" values="2.6;4.2;2.6" dur="{d:.1f}s" '
-                       f'begin="-{h01(s, "b") * d:.1f}s" repeatCount="indefinite"/></circle>')
-            ly = y + 24 if i % 2 else y - 15
-            out.append(f'<text x="{x:.1f}" y="{ly:.1f}" font-size="12" fill="#d8deff" '
-                       f'text-anchor="middle">{escape(s)}</text>')
-    return "".join([svg_open(SW, SH, "Skills as constellations"), bg,
-                     f'<g clip-path="url(#pclip)">{dust(SW, SH, 160, "chart", twinkle=30)}',
-                     f'<g font-family="{FONT}">{"".join(out)}</g></g>', border, '</svg>'])
+    for i, (cat, items) in enumerate(rows):
+        y = top + 22 + i * row_h
+        out.append(f'<circle cx="28" cy="{y - 5}" r="2.2" fill="{ACCENT}" opacity=".8"/>'
+                   f'<text x="42" y="{y}" font-size="13.5" fill="{MUTED}">{escape(cat)}</text>')
+        for j, it in enumerate(items):
+            out.append(f'<text x="{180 + j * 128}" y="{y}" font-size="14.5" fill="{TEXT}">{escape(it)}</text>')
+        if i < len(rows) - 1:
+            out.append(f'<line x1="22" y1="{y + 18}" x2="{w - 22}" y2="{y + 18}" stroke="#ffffff" stroke-opacity=".05"/>')
+    return "".join([svg_open(w, h, "Toolkit"), head,
+                    f'<g clip-path="url(#pclip)">{stars(w, h, 120, "tool", twinkle=14)}',
+                    f'<g font-family="{SANS}">{"".join(out)}</g></g>', tail, '</svg>'])
 
 
-# ----------------------------------------------------------------- telemetry
+# ----------------------------------------------------------------- stats
 
-TW, TH = 830, 200
-
-
-def telemetry(n_repos, stars, contribs, followers, langs):
-    bg, border = panel(TW, TH, accent="#2f6f8f")
-    cells = [("REPOS", n_repos), ("STARS", stars),
-             ("CONTRIB / 1Y" if contribs is not None else "FOLLOWERS",
+def telemetry(n_repos, stars_n, contribs, followers, langs):
+    w, h = 830, 176
+    head, tail = panel(w, h)
+    cells = [("public repos", n_repos), ("stars", stars_n),
+             ("contributions, last year" if contribs is not None else "followers",
               contribs if contribs is not None else followers)]
     out = []
-    for i, (label, val) in enumerate(cells):
-        x = 40 + i * 140
-        out.append(f'<text x="{x}" y="86" font-size="34" font-weight="700" fill="#eef1ff">{val}</text>'
-                   f'<text x="{x}" y="110" font-size="11" fill="#7fd3ff" letter-spacing="2">{label}</text>')
+    x = 36
+    for label, val in cells:
+        out.append(f'<text x="{x}" y="78" font-size="34" font-weight="600" fill="{TEXT}">{val}</text>'
+                   f'<text x="{x}" y="102" font-size="12.5" fill="{MUTED}">{escape(label)}</text>')
+        x += 120 if len(label) < 14 else 190
     total = sum(v for _, v in langs) or 1
-    bx, bw, by = 470, 320, 62
-    out.append(f'<text x="{bx}" y="{by - 14}" font-size="11" fill="#7fd3ff" letter-spacing="2">LANGUAGE SPECTRUM</text>')
-    x = bx
+    bx, bw, by = 500, 294, 52
+    out.append(f'<text x="{bx}" y="{by - 12}" font-size="12.5" fill="{MUTED}">Languages</text>')
+    out.append(f'<clipPath id="bar"><rect x="{bx}" y="{by}" width="{bw}" height="8" rx="4"/></clipPath><g clip-path="url(#bar)">')
+    xx = bx
     for name, v in langs:
-        w = bw * v / total
-        out.append(f'<rect x="{x:.1f}" y="{by}" width="{max(w - 1.5, 1):.1f}" height="12" rx="3" '
-                   f'fill="{LANG_COLORS.get(name, DEFAULT_COLOR)}"/>')
-        x += w
+        seg = bw * v / total
+        out.append(f'<rect x="{xx:.1f}" y="{by}" width="{seg + .5:.1f}" height="8" fill="{LANG.get(name, "#8b949e")}"/>')
+        xx += seg
+    out.append('</g>')
     for i, (name, v) in enumerate(langs[:6]):
-        lx, ly = bx + (i % 2) * 165, by + 36 + (i // 2) * 20
-        out.append(f'<circle cx="{lx + 5}" cy="{ly - 4}" r="4.5" fill="{LANG_COLORS.get(name, DEFAULT_COLOR)}"/>'
-                   f'<text x="{lx + 16}" y="{ly}" font-size="12" fill="#c9d2ff">{escape(name)} '
-                   f'{100 * v / total:.0f}%</text>')
-    scan = (f'<rect x="0" y="0" width="60" height="{TH}" fill="url(#scan)">'
-            f'<animate attributeName="x" values="-60;{TW}" dur="6s" repeatCount="indefinite"/></rect>')
-    return "".join([svg_open(TW, TH, "GitHub telemetry"), bg,
-                    '<defs><linearGradient id="scan" x1="0" x2="1"><stop offset="0" stop-color="#7fd3ff" stop-opacity="0"/>'
-                    '<stop offset=".5" stop-color="#7fd3ff" stop-opacity=".08"/>'
-                    '<stop offset="1" stop-color="#7fd3ff" stop-opacity="0"/></linearGradient></defs>',
-                    f'<g clip-path="url(#pclip)">{dust(TW, TH, 90, "tel", twinkle=16)}{scan}',
-                    f'<line x1="430" y1="36" x2="430" y2="{TH - 36}" stroke="#2f6f8f" stroke-opacity=".6"/>',
-                    f'<g font-family="{FONT}">{"".join(out)}',
-                    f'<text x="40" y="{TH - 30}" font-size="10.5" fill="#6f7bb0">auto-refreshed daily by GitHub Actions</text>'
-                    '</g></g>', border, '</svg>'])
+        lx, ly = bx + (i % 2) * 150, by + 34 + (i // 2) * 22
+        out.append(f'<circle cx="{lx + 5}" cy="{ly - 4}" r="5" fill="{LANG.get(name, "#8b949e")}"/>'
+                   f'<text x="{lx + 16}" y="{ly}" font-size="13" fill="{TEXT}">{escape(name)} '
+                   f'<tspan fill="{MUTED}">{100 * v / total:.1f}%</tspan></text>')
+    out.append(f'<text x="36" y="{h - 28}" font-size="11.5" fill="{FAINT}">Pulled from the GitHub API by a daily Action</text>')
+    return "".join([svg_open(w, h, "GitHub stats"), head,
+                    f'<g clip-path="url(#pclip)">{stars(w, h, 80, "tel", twinkle=10)}',
+                    f'<line x1="460" y1="30" x2="460" y2="{h - 30}" stroke="{BORDER}"/>',
+                    f'<g font-family="{SANS}">{"".join(out)}</g></g>', tail, '</svg>'])
 
 
-# ----------------------------------------------------------------- channels + footer
+# ----------------------------------------------------------------- contact + footer
 
-def channel(label, sub, accent):
-    w, h = 300, 64
-    bg, border = panel(w, h, rx=32, accent=accent)
-    return "".join([svg_open(w, h, label), bg,
-                    f'<g clip-path="url(#pclip)">{dust(w, h, 30, "ch" + label, twinkle=6)}',
-                    f'<circle cx="34" cy="32" r="12" fill="{accent}" opacity=".2">'
-                    '<animate attributeName="r" values="9;15;9" dur="2.4s" repeatCount="indefinite"/></circle>',
-                    f'<circle cx="34" cy="32" r="5" fill="{accent}"/>',
-                    f'<g font-family="{FONT}"><text x="60" y="29" font-size="16" font-weight="700" fill="#eef1ff">'
-                    f'{escape(label)}</text><text x="60" y="47" font-size="11" fill="#8f9ad0">{escape(sub)}</text></g>',
-                    '</g>', border, '</svg>'])
+def channel(label, sub, dot):
+    w, h = 300, 60
+    head, tail = panel(w, h, rx=8)
+    return "".join([svg_open(w, h, label), head,
+                    f'<g clip-path="url(#pclip)">{stars(w, h, 24, "ch" + label, twinkle=4)}',
+                    f'<circle cx="28" cy="30" r="5" fill="{dot}"/>',
+                    f'<g font-family="{SANS}"><text x="46" y="27" font-size="16" font-weight="600" fill="{TEXT}">'
+                    f'{escape(label)}</text><text x="46" y="45" font-size="12" fill="{MUTED}">{escape(sub)}</text></g>',
+                    '</g>', tail, '</svg>'])
 
 
 def footer():
-    w, h = 830, 110
-    bg, border = panel(w, h, accent="#3a4380")
+    w, h = 830, 96
+    head, tail = panel(w, h)
     q1, q2 = "Life is a bit. You are either 0 or a 1.", "I like to toggle every now and then."
-    bit = ('<g transform="translate(415,30)">'
-           '<rect x="-16" y="-16" width="32" height="32" rx="7" fill="#11173f" stroke="#ffd56b" stroke-opacity=".7"/>'
-           '<text y="7" text-anchor="middle" font-size="18" font-weight="700" fill="#ffd56b">0'
-           '<animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.45;.5;.95;1" dur="3s" repeatCount="indefinite"/></text>'
-           '<text y="7" text-anchor="middle" font-size="18" font-weight="700" fill="#7fd3ff" opacity="0">1'
-           '<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.45;.5;.95;1" dur="3s" repeatCount="indefinite"/></text>'
-           '</g>')
-    return "".join([svg_open(w, h, q1 + " " + q2), bg,
-                    f'<g clip-path="url(#pclip)">{dust(w, h, 80, "foot", twinkle=20)}',
-                    f'<g font-family="{FONT}">{bit}'
-                    f'<text x="415" y="72" font-size="15" fill="#e3e8ff" text-anchor="middle">{escape(q1)}</text>'
-                    f'<text x="415" y="94" font-size="15" fill="#a7b2e0" text-anchor="middle">{escape(q2)}</text></g>',
-                    '</g>', border, '</svg>'])
+    bit = (f'<g transform="translate(415,28)" font-family="{MONO}" font-size="16" text-anchor="middle">'
+           f'<rect x="-13" y="-13" width="26" height="26" rx="5" fill="none" stroke="{BORDER}"/>'
+           f'<text y="6" fill="{TEXT}">0<animate attributeName="opacity" values="1;1;0;0;1" '
+           'keyTimes="0;.48;.5;.98;1" dur="4s" repeatCount="indefinite"/></text>'
+           f'<text y="6" fill="{ACCENT}" opacity="0">1<animate attributeName="opacity" values="0;0;1;1;0" '
+           'keyTimes="0;.48;.5;.98;1" dur="4s" repeatCount="indefinite"/></text></g>')
+    return "".join([svg_open(w, h, q1 + " " + q2), head,
+                    f'<g clip-path="url(#pclip)">{stars(w, h, 70, "foot", twinkle=12)}{bit}',
+                    f'<g font-family="{SANS}" font-style="italic" text-anchor="middle">'
+                    f'<text x="415" y="64" font-size="15" fill="{TEXT}">{escape(q1)}</text>'
+                    f'<text x="415" y="84" font-size="15" fill="{MUTED}">{escape(q2)}</text></g>',
+                    '</g>', tail, '</svg>'])
 
 
 # ----------------------------------------------------------------- data
@@ -352,7 +357,7 @@ def fetch_languages(user, repos, token):
         except Exception:
             if r.get("language"):
                 totals[r["language"]] = totals.get(r["language"], 0) + 1
-    return sorted(totals.items(), key=lambda kv: -kv[1])[:8]
+    return sorted(totals.items(), key=lambda kv: -kv[1])[:6]
 
 
 def fetch_followers(user, token):
@@ -366,38 +371,70 @@ def fetch_followers(user, token):
 
 def build_all(root, user, repos, contrib, langs, followers):
     a = os.path.join(root, "assets")
-    contribs, _ = contrib if contrib else (None, None)
+    contribs = contrib[0] if contrib else None
+    import shutil  # drop cards for repos no longer featured
+    for d in ("planets", "uncharted"):
+        shutil.rmtree(os.path.join(a, d), ignore_errors=True)
+    for stale in ("star-chart.svg",):
+        if os.path.exists(os.path.join(a, stale)):
+            os.remove(os.path.join(a, stale))
+    by_name = {r["name"]: r for r in repos}
 
-    write(f"{a}/cosmos.svg", gc.build(repos, contrib, "Yashwanth Naidu",
-                                      "embedded software | onboard diagnostics for autonomous trucks", 9))
-    for num, title, sub, acc in BANNERS:
-        write(f"{a}/banner-{num}.svg", banner(num, title, sub, acc))
-    write(f"{a}/star-chart.svg", star_chart(STAR_CHART))
+    def desc(r):
+        return DESCRIPTIONS.get(r["name"]) or r.get("description") or ""
+
+    # hero: only the featured repos, in their planet colors
+    hero = []
+    for name, planet in [(PRIMARY, "saturn")] + FEATURED:
+        if name in by_name:
+            hero.append(dict(by_name[name], _color=PLANETS[planet][0]))
+    gc.SHOW_STATS = False  # the stats panel below already shows these
+    write(f"{a}/cosmos.svg", gc.build(hero, contrib, "Yashwanth Naidu",
+                                      "Embedded software  |  onboard diagnostics for autonomous trucks", 9))
+
+    for num, title, note in BANNERS:
+        write(f"{a}/banner-{num}.svg", banner(num, title, note))
+    write(f"{a}/toolkit.svg", toolkit(TOOLKIT))
     write(f"{a}/telemetry.svg", telemetry(len(repos), sum(r["stargazers_count"] for r in repos),
                                           contribs, followers, langs))
-    write(f"{a}/channel-linkedin.svg", channel("LinkedIn", "/in/t-yashwanth-naidu", "#5fa8ff"))
-    write(f"{a}/channel-site.svg", channel("cthecosmos.com", "writing, logs, projects", "#ffb05a"))
+    write(f"{a}/channel-linkedin.svg", channel("LinkedIn", "in/t-yashwanth-naidu", "#0a66c2"))
+    write(f"{a}/channel-site.svg", channel("cthecosmos.com", "portfolio and writing", ACCENT))
     write(f"{a}/footer.svg", footer())
 
-    planet_md = []
-    for r in sorted(repos, key=lambda r: (-r["stargazers_count"], r["name"].lower())):
-        s = slug(r["name"])
-        write(f"{a}/planets/{s}.svg", planet_card(r["name"], r.get("description"), r.get("language"),
-                                                  r["stargazers_count"], "PLANET", r["name"]))
-        alt = escape(f'{r["name"]} - {r.get("description") or "repository"}', {'"': "&quot;"})
-        planet_md.append(f'<a href="{r["html_url"]}"><img src="assets/planets/{s}.svg" width="49%" alt="{alt}"></a>')
+    md = []
+    if PRIMARY in by_name:
+        r = by_name[PRIMARY]
+        write(f"{a}/planets/{slug(PRIMARY)}.svg",
+              repo_card(r["name"], desc(r), r.get("language"), r["stargazers_count"], r.get("forks_count"),
+                        "saturn", r["name"], w=830, h=220, primary=True, tag="Most starred"))
+        md.append(f'<a href="{r["html_url"]}"><img src="assets/planets/{slug(PRIMARY)}.svg" width="100%" '
+                  f'alt="{escape(r["name"] + " - " + desc(r), {chr(34): "&quot;"})}"></a>')
+    row = []
+    for name, planet in FEATURED:
+        if name not in by_name:
+            print(f"warn: featured repo {name} not found (private, renamed or a fork?)", file=sys.stderr)
+            continue
+        r = by_name[name]
+        write(f"{a}/planets/{slug(name)}.svg",
+              repo_card(r["name"], desc(r), r.get("language"), r["stargazers_count"], r.get("forks_count"),
+                        planet, r["name"]))
+        row.append(f'<a href="{r["html_url"]}"><img src="assets/planets/{slug(name)}.svg" width="49%" '
+                   f'alt="{escape(r["name"] + " - " + desc(r), {chr(34): "&quot;"})}"></a>')
+    planets_md = "\n".join(md) + "\n</p>\n<p align=\"center\">\n" + "\n".join(row)
 
-    unch_md = []
+    unch = []
     for p in UNCHARTED:
-        write(f"{a}/uncharted/{p['id']}.svg", planet_card(p["name"], p["description"], p["language"],
-                                                         None, "UNCHARTED", p["id"], dashed=True))
-        alt = escape(f'{p["name"]} - {p["description"]}', {'"': "&quot;"})
-        unch_md.append(f'<a href="{SITE}"><img src="assets/uncharted/{p["id"]}.svg" width="49%" alt="{alt}"></a>')
+        write(f"{a}/uncharted/{p['id']}.svg",
+              repo_card(p["name"], p["description"], p["language"], 0, 0, p["planet"], p["id"],
+                        dashed=True, tag="portfolio"))
+        unch.append(f'<a href="{PORTFOLIO}"><img src="assets/uncharted/{p["id"]}.svg" width="49%" '
+                    f'alt="{escape(p["name"] + " - " + p["description"], {chr(34): "&quot;"})}"></a>')
 
     tpl = open(os.path.join(root, "scripts", "README.template.md"), encoding="utf-8").read()
-    readme = tpl.replace("{{PLANETS}}", "\n".join(planet_md)).replace("{{UNCHARTED}}", "\n".join(unch_md))
-    write(os.path.join(root, "README.md"), readme)
-    return len(repos)
+    write(os.path.join(root, "README.md"),
+          tpl.replace("{{PLANETS}}", planets_md).replace("{{UNCHARTED}}", "\n".join(unch))
+             .replace("{{PORTFOLIO}}", PORTFOLIO))
+    return len(hero)
 
 
 def main():
@@ -410,8 +447,7 @@ def main():
     contrib = gc.fetch_contributions(a.user, token)
     langs = fetch_languages(a.user, repos, token)
     followers = fetch_followers(a.user, token)
-    n = build_all(a.root, a.user, repos, contrib, langs, followers)
-    print(f"built universe: {n} planets")
+    print(f"built: {build_all(a.root, a.user, repos, contrib, langs, followers)} featured repos")
 
 
 if __name__ == "__main__":

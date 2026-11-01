@@ -27,7 +27,8 @@ API = "https://api.github.com"
 W, H = 1000, 440
 CX, CY = 500, 236
 TOP, BOT = 76, H - 34  # keep twinkling stars out of the title and legend bands
-FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace"
+FONT = "'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif"
+MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
 LANG_COLORS = {
     "C": "#8fb3e8",
@@ -44,6 +45,7 @@ LANG_COLORS = {
     "Makefile": "#6fd18a",
 }
 DEFAULT_COLOR = "#a48cff"
+SHOW_STATS = True
 DISPLAY_NAMES = {"C-Programming-Questions": "C-Questions"}
 
 
@@ -118,11 +120,11 @@ def ellipse_path(rx, ry):
 def defs(colors):
     g = ['<defs>',
          '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
-         '<stop offset="0" stop-color="#04050d"/><stop offset="1" stop-color="#0c1233"/></linearGradient>',
-         '<radialGradient id="neb1"><stop offset="0" stop-color="#7a46e0" stop-opacity=".55"/>'
-         '<stop offset="1" stop-color="#7a46e0" stop-opacity="0"/></radialGradient>',
-         '<radialGradient id="neb2"><stop offset="0" stop-color="#1fb3b0" stop-opacity=".40"/>'
-         '<stop offset="1" stop-color="#1fb3b0" stop-opacity="0"/></radialGradient>',
+         '<stop offset="0" stop-color="#020306"/><stop offset="1" stop-color="#090c14"/></linearGradient>',
+         '<radialGradient id="neb1"><stop offset="0" stop-color="#4a4258" stop-opacity=".35"/>'
+         '<stop offset="1" stop-color="#4a4258" stop-opacity="0"/></radialGradient>',
+         '<radialGradient id="neb2"><stop offset="0" stop-color="#2c3a48" stop-opacity=".35"/>'
+         '<stop offset="1" stop-color="#2c3a48" stop-opacity="0"/></radialGradient>',
          '<radialGradient id="sunglow"><stop offset="0" stop-color="#ffb347" stop-opacity=".55"/>'
          '<stop offset=".5" stop-color="#ff7a2f" stop-opacity=".15"/>'
          '<stop offset="1" stop-color="#ff7a2f" stop-opacity="0"/></radialGradient>',
@@ -149,12 +151,12 @@ def defs(colors):
          '<radialGradient id="psrglow"><stop offset="0" stop-color="#cfe0ff" stop-opacity=".9"/>'
          '<stop offset="1" stop-color="#5f86ff" stop-opacity="0"/></radialGradient>',
          # wormhole
-         '<radialGradient id="whcore"><stop offset="0" stop-color="#1a1240"/>'
-         '<stop offset=".7" stop-color="#2d2a6b"/><stop offset="1" stop-color="#8fb0ff"/></radialGradient>',
+         '<radialGradient id="whcore"><stop offset="0" stop-color="#0b0f1a"/>'
+         '<stop offset=".7" stop-color="#1d2738"/><stop offset="1" stop-color="#9fb2cf"/></radialGradient>',
          '<radialGradient id="whshade" fx=".35" fy=".3"><stop offset="0" stop-color="#fff" stop-opacity=".18"/>'
          '<stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>',
-         '<radialGradient id="whglow"><stop offset=".6" stop-color="#7aa0ff" stop-opacity=".22"/>'
-         '<stop offset="1" stop-color="#7aa0ff" stop-opacity="0"/></radialGradient>',
+         '<radialGradient id="whglow"><stop offset=".6" stop-color="#9fb2cf" stop-opacity=".14"/>'
+         '<stop offset="1" stop-color="#9fb2cf" stop-opacity="0"/></radialGradient>',
          '<clipPath id="whclip"><circle r="36"/></clipPath>',
          '<clipPath id="frame"><rect width="%d" height="%d" rx="16"/></clipPath>' % (W, H)]
     for i, c in enumerate(colors):
@@ -268,7 +270,7 @@ def pulsar(x=905, y=96):
         'dur="3.2s" repeatCount="indefinite"/></g></g>',
         '<circle r="3.6" fill="#f2f7ff"/>',
         f'<text y="30" text-anchor="middle" font-family="{FONT}" font-size="9.5" '
-        'fill="#8fa3d9" fill-opacity=".8">neutron star</text>',
+        'fill="#6e7681">neutron star</text>',
         '</g>',
     ])
 
@@ -285,7 +287,7 @@ def wormhole(x=92, y=330, r=36):
         x1, y1 = rr * math.cos(math.radians(a0 + span)), rr * math.sin(math.radians(a0 + span))
         streaks.append(
             f'<path d="M{x0:.1f},{y0:.1f} A{rr:.1f},{rr:.1f} 0 0,1 {x1:.1f},{y1:.1f}" fill="none" '
-            f'stroke="{["#ffd9a8", "#a9c7ff", "#e7b8ff"][i % 3]}" stroke-width="{1 + 2.2 * h01(k, "w"):.1f}" '
+            f'stroke="{["#e8dcc4", "#b9c8e0", "#d0d6e0"][i % 3]}" stroke-width="{1 + 2.2 * h01(k, "w"):.1f}" '
             f'stroke-linecap="round" opacity="{.35 + .4 * h01(k, "o"):.2f}"/>')
     for i in range(14):
         k = f"whs{i}"
@@ -294,7 +296,7 @@ def wormhole(x=92, y=330, r=36):
     return "".join([
         f'<g transform="translate({x},{y})">',
         f'<circle r="{r + 16}" fill="url(#whglow)"/>',
-        f'<circle r="{r + 6}" fill="none" stroke="#bcd3ff" stroke-width=".8" opacity=".35"/>',
+        f'<circle r="{r + 6}" fill="none" stroke="#c9d1d9" stroke-width=".8" opacity=".25"/>',
         f'<circle r="{r}" fill="url(#whcore)"/>',
         f'<g clip-path="url(#whclip)"><g filter="url(#smear)">{"".join(streaks)}'
         '<animateTransform attributeName="transform" type="rotate" from="0" to="-360" '
@@ -302,7 +304,7 @@ def wormhole(x=92, y=330, r=36):
         f'<circle r="{r}" fill="url(#whshade)"/>',
         f'<circle r="{r}" fill="none" stroke="#e6efff" stroke-width="1.2" opacity=".7"/>',
         f'<text y="{r + 20}" text-anchor="middle" font-family="{FONT}" font-size="9.5" '
-        'fill="#8fa3d9" fill-opacity=".8">wormhole</text>',
+        'fill="#6e7681">wormhole</text>',
         '</g>',
     ])
 
@@ -312,7 +314,7 @@ def solar_system(repos, max_planets):
     n = len(repos)
     if not n:
         return "", "", []
-    colors = [LANG_COLORS.get(r.get("language") or "", DEFAULT_COLOR) for r in repos]
+    colors = [r.get("_color") or LANG_COLORS.get(r.get("language") or "", DEFAULT_COLOR) for r in repos]
     top_stars = max(r["stargazers_count"] for r in repos)
     rx_min, rx_max = 150, 430
     orbits, bodies = [], []
@@ -320,7 +322,7 @@ def solar_system(repos, max_planets):
         rx = rx_min + (rx_max - rx_min) * (i / max(n - 1, 1))
         ry = rx * 0.34
         path = ellipse_path(rx, ry)
-        orbits.append(f'<path d="{path}" fill="none" stroke="#8ea2ff" stroke-opacity=".16" '
+        orbits.append(f'<path d="{path}" fill="none" stroke="#ffffff" stroke-opacity=".07" '
                       'stroke-dasharray="2 6"/>')
         stars = r["stargazers_count"]
         pr = max(3.5, min(16.0, 4 + 4.2 * math.log10(stars + 1)))
@@ -340,21 +342,21 @@ def solar_system(repos, max_planets):
             f'<animateMotion dur="{dur:.1f}s" begin="-{begin:.1f}s" repeatCount="indefinite" path="{path}"/>'
             f'<circle r="{pr * 1.8:.1f}" fill="{colors[i]}" opacity=".12"/>'
             f'<circle r="{pr:.1f}" fill="url(#p{i})"/>{ring}'
-            f'<text y="{ly:.1f}" text-anchor="middle" font-size="10.5" fill="#c9d2ff" '
+            f'<text y="{ly:.1f}" text-anchor="middle" font-size="11" fill="#c9d1d9" '
             f'fill-opacity=".85">{escape(label)}</text></g>')
     return "\n".join(orbits), "\n".join(bodies), colors
 
 
 def text_layer(title, subtitle, n_repos, total_stars, contribs):
-    stats = f"{n_repos} repos | {total_stars} stars"
-    if contribs is not None:
+    stats = f"{n_repos} repos | {total_stars} stars" if SHOW_STATS else ""
+    if contribs is not None and SHOW_STATS:
         stats += f" | {contribs} contributions"
     legend = "planet = repo  |  size = stars  |  inner orbit = recent push  |  stars = commit days"
     return (f'<g font-family="{FONT}">'
-            f'<text x="28" y="40" font-size="22" font-weight="600" fill="#eef1ff">{escape(title)}</text>'
-            f'<text x="28" y="60" font-size="12" fill="#9aa6d6">{escape(subtitle)}</text>'
-            f'<text x="28" y="{H - 16}" font-size="11" fill="#a3aedd">{escape(legend)}</text>'
-            f'<text x="{W - 28}" y="{H - 16}" font-size="10.5" fill="#aab4e6" '
+            f'<text x="28" y="40" font-size="22" font-weight="600" fill="#e6edf3">{escape(title)}</text>'
+            f'<text x="28" y="60" font-size="13" fill="#8b949e">{escape(subtitle)}</text>'
+            f'<text x="28" y="{H - 16}" font-size="11" fill="#8b949e">{escape(legend)}</text>'
+            f'<text x="{W - 28}" y="{H - 16}" font-size="11" fill="#8b949e" '
             f'text-anchor="end">{escape(stats)}</text></g>')
 
 
@@ -377,7 +379,7 @@ def build(repos, contrib, title, subtitle, max_planets):
         text_layer(title, subtitle, len(repos), total_stars, contribs),
         '</g>',
         f'<rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="16" fill="none" '
-        'stroke="#3a4380" stroke-opacity=".6"/>',
+        'stroke="#30363d"/>',
         '</svg>',
     ])
 
