@@ -20,18 +20,73 @@ Every clickable thing is its own image wrapped in <a>.
 Needs fonttools + brotli.  GITHUB_TOKEN=... python scripts/universe.py --user T-Yashwanth-Naidu
 """
 import argparse
+import hashlib
+import json
 import math
 import os
 import re
 import shutil
 import sys
+import urllib.request
 from xml.sax.saxutils import escape
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import generate_cosmos as gc  # noqa: E402  (API helpers)
 import hero  # noqa: E402
 from fontembed import PLEX, STIX, embed  # noqa: E402
-from generate_cosmos import h01, mix  # noqa: E402
+
+API = "https://api.github.com"
+
+
+# ----------------------------------------------------------------- GitHub API
+
+def gh(url, token, body=None):
+    req = urllib.request.Request(url, data=body, headers={
+        "Accept": "application/vnd.github+json", "User-Agent": "cosmos-readme"})
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    if body is not None:
+        req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.load(r)
+
+
+def fetch_repos(user, token):
+    """Public, non-fork, non-archived repos, excluding the profile repo itself."""
+    repos, page = [], 1
+    while True:
+        batch = gh(f"{API}/users/{user}/repos?per_page=100&page={page}&type=owner", token)
+        repos += batch
+        if len(batch) < 100:
+            break
+        page += 1
+    return [r for r in repos if not r["fork"] and not r.get("archived") and r["name"].lower() != user.lower()]
+
+
+def fetch_contributions(user, token):
+    """(total, days) for the last year via GraphQL, or None without a token."""
+    if not token:
+        return None
+    q = {"query": "query($l:String!){user(login:$l){contributionsCollection{contributionCalendar"
+                  "{totalContributions weeks{contributionDays{date contributionCount}}}}}}",
+         "variables": {"l": user}}
+    try:
+        d = gh(f"{API}/graphql", token, json.dumps(q).encode())
+        cal = d["data"]["user"]["contributionsCollection"]["contributionCalendar"]
+        return cal["totalContributions"], [x for w in cal["weeks"] for x in w["contributionDays"]]
+    except Exception as e:
+        print(f"warn: contributions unavailable ({e})", file=sys.stderr)
+        return None
+
+
+def h01(s, salt=""):
+    """Deterministic pseudo-random in [0,1], so images only change when data does."""
+    return int(hashlib.sha256((salt + s).encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
+
+
+def mix(a, b, t):
+    x = [int(a[i:i + 2], 16) for i in (1, 3, 5)]
+    y = [int(b[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(p + (q - p) * t):02x}" for p, q in zip(x, y))
 
 PORTFOLIO = "https://cthecosmos.com/?page_id=4955"
 LINKEDIN = "https://www.linkedin.com/in/t-yashwanth-naidu/"
@@ -404,7 +459,7 @@ def fetch_languages(user, repos, token):
     totals = {}
     for r in repos:
         try:
-            for k, v in gc.gh(f"{gc.API}/repos/{user}/{r['name']}/languages", token).items():
+            for k, v in gh(f"{API}/repos/{user}/{r['name']}/languages", token).items():
                 totals[k] = totals.get(k, 0) + v
         except Exception:
             if r.get("language"):
@@ -414,7 +469,7 @@ def fetch_languages(user, repos, token):
 
 def fetch_followers(user, token):
     try:
-        return gc.gh(f"{gc.API}/users/{user}", token).get("followers", 0)
+        return gh(f"{API}/users/{user}", token).get("followers", 0)
     except Exception:
         return 0
 
@@ -504,8 +559,8 @@ def main():
     ap.add_argument("--root", default=".")
     a = ap.parse_args()
     token = os.environ.get("GITHUB_TOKEN")
-    repos = gc.fetch_repos(a.user, token)
-    contrib = gc.fetch_contributions(a.user, token)
+    repos = fetch_repos(a.user, token)
+    contrib = fetch_contributions(a.user, token)
     langs = fetch_languages(a.user, repos, token)
     followers = fetch_followers(a.user, token)
     print(f"built: {build_all(a.root, a.user, repos, contrib, langs, followers)} orbiting repos")
