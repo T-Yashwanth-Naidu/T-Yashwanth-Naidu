@@ -1,78 +1,42 @@
-# Hi there, I'm Yashwanth Naidu Tikkisetty! 👋
+<a href="https://cthecosmos.com">
+  <img src="assets/cosmos.svg" alt="Animated solar system: each planet is one of my repositories" width="100%">
+</a>
 
-Welcome to my GitHub! I am a passionate Embedded Systems Engineer with over 2 years of experience in embedded software development, real-time systems, and software testing. I enjoy debugging code.  
+### Embedded software engineer building onboard diagnostics for autonomous trucks.
 
-🔧 **Embedded Software Engineer | Embedded Systems Enthusiast**  
-🎓 **Master's Degree in Embedded Systems | Oakland University**  
+Currently at **Torc Robotics**, working on the layer between a modern service-oriented diagnostic API and the ECUs underneath it:
 
----
+- **SOVD -> UDS translation** - mapping ASAM SOVD (REST-based diagnostics, Eclipse OpenSOVD) onto ISO 14229 UDS services
+- **DoIP stacks** - ISO 13400 diagnostics over IP, routing activation, entity/gateway behavior
+- **Diagnostic configuration** - CDD-driven DID/DTC/routine definitions
 
-## 🛠️ Technical Skills
+Before that: safety-critical railway software at Cyient (EN 50128, 100% MC/DC with VectorCAST), and automotive tooling at Vector India.
 
-- **Programming Languages:**  
-  ![C](https://img.shields.io/badge/-C-blue) ![Assembly](https://img.shields.io/badge/-Assembly-green) ![Python](https://img.shields.io/badge/-Python-yellow) ![CUDA](https://img.shields.io/badge/-CUDA-blue)  
+```text
+lang      C, C++, Python, CUDA, Assembly
+auto      UDS, DoIP, SOVD, AUTOSAR Classic/Adaptive, CAN / CAN-FD
+os        Linux (kernel + userspace), QNX, ROS2
+hw        Nvidia Orin AGX, Jetson Orin Nano, Infineon Aurix TC375, RISC-V (QEMU)
+quality   ISO 26262, MISRA C, VectorCAST, GDB
+```
 
-- **Microcontrollers and Boards:**  
-  Arduino Uno/Nano, ESP32, TI TIVA-C, Infineon Aurix TC375, 8051 (AT89S52), HCS12  
+### Things I've built
 
-- **Tools and Technologies:**  
-  MATLAB/Simulink, Keil uVision, CodeWarrior, VectorCAST, Reality Capture, Unreal Engine, OpenACC, QNX IDE  
+| Project | What it is |
+|---|---|
+| [C-Programming-Questions](https://github.com/T-Yashwanth-Naidu/C-Programming-Questions) | Topic-wise C problem set used by 100+ people learning embedded C |
+| [Socket_Manager](https://github.com/T-Yashwanth-Naidu/Socket_Manager) | Socket management in C |
+| [LinkedIn-Highlighter](https://github.com/T-Yashwanth-Naidu/LinkedIn-Highlighter) | Chrome extension that highlights keywords in job posts |
+| GPU KNN | CUDA-parallel K-nearest neighbors, benchmarked against a single-threaded CPU baseline |
+| AEB system | Radar + LiDAR + camera fusion for emergency braking (MATLAB/Simulink) |
 
-- **Protocols:**  
-  UART, I2C, SPI, CAN, RS232, RS485  
+### Writing and research
 
-- **Other Skills:**  
-  GPU Programming, Parallel Computing, Low-Level Debugging (GDB), Embedded Security, System-Level Programming  
+- **CAN Bus Attack Vectors** - IEEE Wavelength, 2024
+- **Automated Data Acquisition for Photogrammetry** - IEEE ICRA
+- **LiDAR 3D Point Cloud Performance Analysis** - IEEE, 2024
+- **Semi-Automated Workflow for 3D Model Reconstruction** - MS thesis, Oakland University
 
----
+More at [cthecosmos.com](https://cthecosmos.com) | [LinkedIn](https://www.linkedin.com/in/t-yashwanth-naidu/)
 
-## 📂 Featured Projects
-
-### 🔹 **Enhancing K-Nearest Neighbors (KNN) with GPU Parallelism**
-- Developed a CUDA-based parallel algorithm for KNN, achieving 1000x speedup.  
--  **Technologies:** C, CUDA, NVIDIA GPU, Benchmarking  
-
----
-
-### 🔹 **Automated Emergency Braking System**
-- Designed and validated an AEB system using radar, LiDAR, and camera sensor fusion.  
-- **Technologies:** MATLAB, Simulink, Sensor Fusion, Model-Based Programming  
-
----
-
-### 🔹 **Multi-Level Security Access System**
-- Created a security system using the 8051 microcontroller with GSM, UART, and I2C.  
-- **Technologies:** C, Embedded Systems, Keil uVision  
-
----
-
-### 🔹 **Secure Biometric Authentication System**
-- Built AES-encrypted biometric authentication with Arduino microcontrollers, testing MITM and DoS vulnerabilities.  
-- **Technologies:** AES, UART, Cybersecurity  
-
----
-
-## 🌟 Achievements
-
-### Published Articles  
-- **CAN Bus Attack Vectors** – IEEE Wavelength, Apr 2024  
-- **Finding Earth-Like Planets and the Possibility of Life Beyond Earth** – Indian Aerospace Defense News, Jun 2023  
-
-### Conference Papers  
-- **Semi-Automated Workflow for 3D Model Reconstruction** – Master’s Thesis, Dec 2024  
-- **Automated Data Acquisition for Photogrammetry** – IEEE ICRA (International Conference on Robotics and Automation)  
-- **LiDAR 3D Point Cloud Performance Analysis** – IEEE ICMI (International Conference on Multimodal Interaction), Apr 2024  
-
----
-
-## 📊 My Stats
-![Yashwanth's GitHub Stats](https://github-readme-stats.vercel.app/api?username=T-Yashwanth-Naidu&show_icons=true&theme=algolia&include_all_commits=true)  
-![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=T-Yashwanth-Naidu&layout=compact&theme=radical)  
-
----
-
-## 🌐 Connect with Me
-[![LinkedIn](https://img.shields.io/badge/-LinkedIn-blue?style=flat&logo=LinkedIn)](https://www.linkedin.com/in/t-yashwanth-naidu/)  
-[![GitHub](https://img.shields.io/badge/-GitHub-black?style=flat&logo=GitHub)](https://github.com/T-Yashwanth-Naidu)  
-
-✨ *“ Life is a bit. You are either 0 or a 1. I like to toggle every now and then. ”* ✨
+<sub>The header regenerates daily via GitHub Actions: planets are repos (size = stars, inner orbit = most recently pushed), background stars are days I committed. Source in <code>scripts/generate_cosmos.py</code>.</sub>
